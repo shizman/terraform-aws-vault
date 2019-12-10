@@ -1,0 +1,52 @@
+{
+  "description": "This is a basic packer file for building a simple AWS AMI containing vault and consul",
+  "variables": {
+    "vault_binary": "",
+    "consul_binary": "",
+    "consul_version": "1.4.5",
+    "vault_version": "1.2.0",
+    "source_ami": "ami-06358f49b5839867c",
+    "os_version_tag": "Ubuntu 18.04 LTS",
+    "ssh_user": "ubuntu",
+    "aws_region": "eu-west-1",
+    "inst_type": "t2.micro",
+    "inst_profile": "Packer-S3-Access",
+    "consul_cluster_size": "3",
+    "consul_cluster_tag": "My_consul_cluster"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "{{user `aws_region`}}",
+      "source_ami": "{{user `source_ami`}}",
+      "instance_type": "{{user `inst_type`}}",
+      "ssh_username": "{{user `ssh_user`}}",
+      "ami_name": "vault{{isotime \"2006-01-02_03.04.05\"}}",
+      "iam_instance_profile": "{{user `inst_profile`}}",
+      "communicator": "ssh",
+      "tags": {
+        "OS_Version": "{{user `os_version_tag`}}",
+        "Base_AMI_Name": "{{ .SourceAMIName }}",
+        "Install": "Vault"
+      }
+    }
+  ],
+  "_provisioners_comment": "Comment",
+  "provisioners": [
+    {
+      "type": "shell",
+      "environment_vars": [
+        "vault_version={{user `vault_version`}}",
+        "vault_binary={{user `vault_binary`}}",
+        "vault_cluster_size={{user `vault_cluster_size`}}",
+        "vault_cluster_tag={{user `vault_cluster_tag`}}",
+        "consul_version={{user `consul_version`}}",
+        "consul_binary={{user `consul_binary`}}",
+        "consul_cluster_size={{user `consul_cluster_size`}}",
+        "consul_cluster_tag={{user `consul_cluster_tag`}}",
+        "use_userdata=1"
+      ],
+      "script": "{{template_dir}}/install-vault-packer.sh"
+    }
+  ]
+}

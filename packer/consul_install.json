@@ -1,0 +1,46 @@
+{
+  "description": "This is a basic packer file for building a simple AWS AMI containing consul",
+  "variables": {
+    "consul_binary": "",
+    "consul_version": "1.3.1",
+    "source_ami": "ami-06358f49b5839867c",
+    "os_version_tag": "Ubuntu 18.04 LTS",
+    "ssh_user": "ubuntu",
+    "aws_region": "eu-west-1",
+    "inst_type": "t2.micro",
+    "inst_profile": "Packer-S3-Access",
+    "tag": "My_consul_cluster",
+    "consul_cluster_size": "3"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "{{user `aws_region`}}",
+      "source_ami": "{{user `source_ami`}}",
+      "instance_type": "{{user `inst_type`}}",
+      "ssh_username": "{{user `ssh_user`}}",
+      "ami_name": "consul{{isotime \"2006-01-02_03.04.05\"}}",
+      "iam_instance_profile": "{{user `inst_profile`}}",
+      "communicator": "ssh",
+      "tags": {
+        "OS_Version": "{{user `os_version_tag`}}",
+        "Base_AMI_Name": "{{ .SourceAMIName }}",
+        "Install": "Consul"
+      }
+    }
+  ],
+  "_provisioners_comment": "Comment",
+  "provisioners": [
+    {
+      "type": "shell",
+      "environment_vars": [
+        "consul_version={{user `consul_version`}}",
+        "consul_binary={{user `consul_binary`}}",
+        "consul_cluster_size={{user `consul_cluster_size`}}",
+        "consul_cluster_tag={{user `consul_cluster_tag`}}",
+        "use_userdata=1"
+      ],
+      "script": "{{template_dir}}/install-consul-packer.sh"
+    }
+  ]
+}
